@@ -16,7 +16,8 @@ cards <- raw_cards %>% mutate(Splinter=factor(Splinter)) %>%
 
 gower_dist <- daisy(cards[, -1],
                     metric = "gower",
-                    type = list(nominal=3))
+                    type = list(nominal=3),
+                    weights = c(1,1,0.1))
 
 gower_mat <- as.matrix(gower_dist)
 
