@@ -3,15 +3,16 @@ library(readr)
 library(cluster)
 library(dplyr)
 
+
 raw_cards <-read_csv(here("data/cardlist.csv"))
-typeCodes <- data.frame(Type=c("Summoner","Monster"),typeCode=c(100,10))
+typeCodes <- data.frame(Type=c("Summoner","Monster"),typeCode=c(-10,10))
 rarityCodes <- data.frame(Rarity=c("Common","Rare","Epic","Legendary"),
                           rarityCode=c(1,4.4,28,66.6))
 
 cards <- raw_cards %>% mutate(Splinter=factor(Splinter)) %>%
                        inner_join(typeCodes) %>% 
                        inner_join(rarityCodes) %>% 
-                       select(Name, rarityCode, typeCode, Splinter)  
+                       dplyr::select(Name, rarityCode, typeCode, Splinter)  
 
 
 gower_dist <- daisy(cards[, -1],
@@ -22,6 +23,38 @@ gower_dist <- daisy(cards[, -1],
 gower_mat <- as.matrix(gower_dist)
 
 
+library(ape)
+cord <- pcoa(gower_dist, correction="none", rn=NULL)
+biplot(cord)
+x=cord$vectors[,1]
+y=cord$vectors[,2]
+cards$Name
+orded<-data.frame(x,y)
+neword<-cbind(cards,orded)
+library(ggplot2)
+p<-ggplot(subset(neword,Splinter=="Red"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
+p <- p+geom_point()
+p
+p<-ggplot(subset(neword,Splinter=="Purple"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
+p <- p+geom_point()
+p
+p<-ggplot(neword,aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
+p <- p+geom_point()
+p
 
+skills <- data.frame(skill1=rbinom(59, 1, 0.1),
+           skill2=rbinom(59, 1, 0.2),
+           skill3=rbinom(59, 1, 0.1),
+           skill4=rbinom(59, 1, 0.1),
+           skill5=rbinom(59, 1, 0.05))
+cskill <- cbind(cards,skills)
 
+gower_dist_skills<- daisy(cskill[, -1],
+                    metric = "gower",
+                    type = list(nominal=3),
+                    weights = c(1,1,0.1,1,1,1,1,3))
 
+cordskill <- pcoa(gower_dist_skills, correction="none", rn=NULL)
+biplot(cordskill)
+x=cordskill$vectors[,1]
+y=cordskill$vectors[,2]
