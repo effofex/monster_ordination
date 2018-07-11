@@ -4,18 +4,19 @@ library(cluster)
 library(dplyr)
 
 raw_cards <-read_csv(here("data/cardlist.csv"))
+typeCodes <- data.frame(Type=c("Summoner","Monster"),typeCode=c(100,10))
+rarityCodes <- data.frame(Rarity=c("Common","Rare","Epic","Legendary"),
+                          rarityCode=c(1,4.4,28,66.6))
 
-typeCode <- c("Summoner"=10,"Monster"=100)
-rarityCode <- c("Common"=1,"Rare"=2,"Epic"=4,"Legendary"=8)
-#TODO  we can make this work by doing joins on df
-cards <- raw_cards %>% mutate_if(is.character, factor)
-cards$codedRarity = rarityCode[cards$Rarity]
-cards2 <-  cards %>% rowwise() %>% mutate(codedType=typeCode[Type],
-                            codedRarity=rarityCode[Rarity]) %>%
-                            select(Name, codedRarity, codedType, Splinter)
-gower_dist <- daisy(cards2[, -1],
+cards <- raw_cards %>% mutate(Splinter=factor(Splinter)) %>%
+                       inner_join(typeCodes) %>% 
+                       inner_join(rarityCodes) %>% 
+                       select(Name, rarityCode, typeCode, Splinter)  
+
+
+gower_dist <- daisy(cards[, -1],
                     metric = "gower",
-                    type = list(ordinal = 1,logratio=2, nominal=3))
+                    type = list(nominal=3))
 
 gower_mat <- as.matrix(gower_dist)
 
