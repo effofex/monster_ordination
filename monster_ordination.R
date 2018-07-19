@@ -4,6 +4,7 @@ library(dplyr)    # easy data manipulation
 library(cluster)  # for Gower distance and daisy 
 library(ape)      # ordination
 library(ggplot2)  # plotting
+library(Cairo)    # nicer looking plots on Win
 
 # get our list of non-foil cards
 raw_cards <-read_csv(here("data/cardlist.csv"))
@@ -36,9 +37,14 @@ cord <- pcoa(gower_dist, correction="none", rn=NULL)
 orded<-data.frame(x=cord$vectors[,1],y=cord$vectors[,2])
 neword<-cbind(cards,orded)
 
-p<-ggplot(subset(neword,Splinter=="Red"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
-p <- p+geom_point()
+p <- ggplot(subset(neword),aes(x=x,y=y,fill=factor(Splinter),color=factor(typeCode),shape=factor(rarityCode)))
+p <- p+theme_bw()
+p <- p+geom_jitter(size=4,width=0.02,height=0.02,stroke=1)
+p <- p + scale_shape_manual(values = c(21, 22, 23, 24))
+p <- p + scale_color_manual(values = c("Red", "Black"))
+#p <- p + geom_jitter(data=(subset(neword,typeCode==0.25)),color="Black")
 p
+CairoWin()
 p<-ggplot(subset(neword,Splinter=="Purple"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
 p <- p+geom_point()
 p
