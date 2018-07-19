@@ -1,7 +1,9 @@
-library(here)
-library(readr)
-library(cluster)
-library(dplyr)
+library(here)     # handle paths to data and output
+library(readr)    # read CSV file
+library(dplyr)    # easy data manipulation
+library(cluster)  # for Gower distance and daisy 
+library(ape)      # ordination
+library(ggplot2)  # plotting
 
 
 raw_cards <-read_csv(here("data/cardlist.csv"))
@@ -23,7 +25,7 @@ gower_dist <- daisy(cards[, -1],
 gower_mat <- as.matrix(gower_dist)
 
 
-library(ape)
+
 cord <- pcoa(gower_dist, correction="none", rn=NULL)
 biplot(cord)
 x=cord$vectors[,1]
@@ -31,7 +33,7 @@ y=cord$vectors[,2]
 cards$Name
 orded<-data.frame(x,y)
 neword<-cbind(cards,orded)
-library(ggplot2)
+
 p<-ggplot(subset(neword,Splinter=="Red"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
 p <- p+geom_point()
 p
