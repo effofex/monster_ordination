@@ -5,18 +5,22 @@ library(cluster)  # for Gower distance and daisy
 library(ape)      # ordination
 library(ggplot2)  # plotting
 
-
+# get our list of non-foil cards
 raw_cards <-read_csv(here("data/cardlist.csv"))
-typeCodes <- data.frame(Type=c("Summoner","Monster"),typeCode=c(-10,10))
+# Translate card type to a numeric code
+typeCodes <- data.frame(Type=c("Summoner","Monster"),typeCode=c(0.25,1))
+# Translate rarity to a numeric code
 rarityCodes <- data.frame(Rarity=c("Common","Rare","Epic","Legendary"),
                           rarityCode=c(1,4.4,28,66.6))
 
+# Creates a data frame with all the info we need to ordinate
 cards <- raw_cards %>% mutate(Splinter=factor(Splinter)) %>%
                        inner_join(typeCodes) %>% 
                        inner_join(rarityCodes) %>% 
                        dplyr::select(Name, rarityCode, typeCode, Splinter)  
 
-
+# Compute a pairwise gower distances for card pairs, using Gower distance
+# and adjusting weights so Splinter isn't overwhelming
 gower_dist <- daisy(cards[, -1],
                     metric = "gower",
                     type = list(nominal=3),
@@ -24,14 +28,12 @@ gower_dist <- daisy(cards[, -1],
 
 gower_mat <- as.matrix(gower_dist)
 
-
-
+# Create a pcoa ordination using the distance matrix
 cord <- pcoa(gower_dist, correction="none", rn=NULL)
-biplot(cord)
-x=cord$vectors[,1]
-y=cord$vectors[,2]
-cards$Name
-orded<-data.frame(x,y)
+
+# create a data frame consisting of card names and their locations on the
+# first two ordination axes, for plotting
+orded<-data.frame(x=cord$vectors[,1],y=cord$vectors[,2])
 neword<-cbind(cards,orded)
 
 p<-ggplot(subset(neword,Splinter=="Red"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
