@@ -38,6 +38,10 @@ cord <- pcoa(gower_dist, correction="none", rn=NULL)
 orded<-data.frame(x=cord$vectors[,1],y=cord$vectors[,2])
 neword<-cbind(cards,orded)
 
+# Preferred display device
+CairoWin()
+
+# Do the actual plotting
 p <- ggplot(subset(neword),aes(x=x,y=y,
                                fill=factor(Splinter),
                                color=factor(typeCode),
@@ -48,6 +52,8 @@ p <- ggplot(subset(neword),aes(x=x,y=y,
         axis.text.y  = element_text(size=20,color="Black"),
         axis.title.x  = element_text(size=20,color="Black"),
         axis.title.y  = element_text(size=20,color="Black")) +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
   xlab(sprintf(fmt="PC1: %.2f%% variance explained",
                cord$values$Relative_eig[1]*100) ) +
   ylab(sprintf(fmt="PC2: %.2f%% variance explained",
@@ -78,20 +84,11 @@ p <- ggplot(subset(neword),aes(x=x,y=y,
                             override.aes=list(
                               fill=c(Summoner="White",Monster="White"),
                               shape=21,label=""))) +
-#  geom_text_repel(data=subset(neword,typeCode==0.25),
-#                          aes(label=Name),
-#                          xlim  = c(-0.25,0.0),
-#                          ylim = c(-0.25,-1.0)) +
-  geom_text(data=subset(neword,typeCode==0.25), aes(label=Name))
-
+geom_text(data=subset(neword,(Splinter=="Purple") & typeCode==0.25), 
+          aes(label=Name),color="Black",hjust=0.8,size=7,vjust=-1.35)
 p
-CairoWin()
-p<-ggplot(subset(neword,Splinter=="Purple"),aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
-p <- p+geom_point()
-p
-p<-ggplot(neword,aes(x=x,y=y,shape=factor(typeCode),color=factor(rarityCode)))
-p <- p+geom_point()
-p
+# Save the plot
+ggsave('output/default_ordination.png', dpi = 96)
 
 skills <- data.frame(skill1=rbinom(59, 1, 0.1),
            skill2=rbinom(59, 1, 0.2),
